@@ -1,0 +1,108 @@
+<launch>
+  <param name="/use_sim_time" value="true"/>
+
+  <arg name="world" default="world_0" doc="world_0, world_1, woods_easy, or random_woods"/>
+  <arg name="spawn_obstacles" default="false"/>
+  <arg name="num_obstacles" default="4"/>
+  <arg name="world_size" default="12.0"/>
+  <arg name="seed" default="-1"/>
+  <arg name="red_ball_z" default="1.0"/>
+  <arg name="target_x" default="4.0"/>
+  <arg name="target_y" default="0.0"/>
+  <arg name="target_z" default="1.0"/>
+  <arg name="num_trunks" default="8"/>
+  <arg name="num_branches" default="15"/>
+  <arg name="num_fallen" default="3"/>
+  <arg name="uav_clearance" default="1.5"/>
+  <arg name="target_clearance" default="0.8"/>
+  <arg name="spawn_woods" default="$(eval 'false' if arg('world') == 'random_woods' else 'true')"/>
+  <arg name="max_attempts" default="500"/>
+  <arg name="area_x_min" default="1.5"/>
+  <arg name="area_x_max" default="6.5"/>
+  <arg name="area_y_min" default="-3.0"/>
+  <arg name="area_y_max" default="3.0"/>
+
+  <arg name="gui" default="true"/>
+  <arg name="interactive" default="false"/>
+  <arg name="debug" default="false"/>
+  <arg name="verbose" default="false"/>
+  <arg name="paused" default="false"/>
+  <arg name="fcu_url" default="udp://:14540@localhost:14580"/>
+
+  <arg name="world_file"
+       default="$(eval find('drone_chase') + ('/worlds/world_2_random_woods.world' if arg('world') in ['woods_easy', 'random_woods'] else ('/worlds/world_1_sparse_obstacles.world' if arg('world') == 'world_1' else '/worlds/world_0_empty_ball.world')))"/>
+  <arg name="woods_world_effective"
+       default="$(eval 'true' if arg('world') in ['woods_easy', 'random_woods'] else 'false')"/>
+  <arg name="spawn_obstacles_effective"
+       default="$(eval 'true' if arg('spawn_obstacles') == 'true' or arg('world') == 'world_1' else 'false')"/>
+  <arg name="woods_num_trunks_effective"
+       default="$(eval 18 if arg('world') == 'random_woods' else int(arg('num_trunks')))"/>
+  <arg name="woods_num_branches_effective"
+       default="$(eval 45 if arg('world') == 'random_woods' else int(arg('num_branches')))"/>
+  <arg name="woods_num_fallen_effective"
+       default="$(eval 10 if arg('world') == 'random_woods' else int(arg('num_fallen')))"/>
+  <arg name="woods_area_x_min_effective"
+       default="$(eval 1.0 if arg('world') == 'random_woods' else float(arg('area_x_min')))"/>
+  <arg name="woods_area_x_max_effective"
+       default="$(eval 6.5 if arg('world') == 'random_woods' else float(arg('area_x_max')))"/>
+  <arg name="woods_area_y_min_effective"
+       default="$(eval -3.5 if arg('world') == 'random_woods' else float(arg('area_y_min')))"/>
+  <arg name="woods_area_y_max_effective"
+       default="$(eval 3.5 if arg('world') == 'random_woods' else float(arg('area_y_max')))"/>
+  <arg name="woods_uav_clearance_effective"
+       default="$(eval 1.0 if arg('world') == 'random_woods' else float(arg('uav_clearance')))"/>
+  <arg name="woods_target_clearance_effective"
+       default="$(eval 0.6 if arg('world') == 'random_woods' else float(arg('target_clearance')))"/>
+
+  <env name="GAZEBO_MODEL_PATH"
+       value="$(find drone_chase)/models:$(optenv GAZEBO_MODEL_PATH):/home/whk/PX4-Autopilot/Tools/sitl_gazebo/models"/>
+
+  <rosparam file="$(find drone_chase)/config/camera_params.yaml" command="load" ns="/uav"/>
+
+  <!-- Keep the Phase 1 PX4/MAVROS path: iris airframe, same MAVROS launch, only custom SDF. -->
+  <include file="$(find px4)/launch/mavros_posix_sitl.launch">
+    <arg name="vehicle" value="iris"/>
+    <arg name="sdf" value="$(find drone_chase)/models/iris_rgbd_chaser/iris_rgbd_chaser.sdf"/>
+    <arg name="world" value="$(arg world_file)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="debug" value="$(arg debug)"/>
+    <arg name="verbose" value="$(arg verbose)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="interactive" value="$(arg interactive)"/>
+    <arg name="fcu_url" value="$(arg fcu_url)"/>
+  </include>
+
+  <group unless="$(arg woods_world_effective)">
+    <include file="$(find drone_chase)/launch/phase2_spawn_objects.launch">
+      <arg name="spawn_obstacles" value="$(arg spawn_obstacles_effective)"/>
+      <arg name="num_obstacles" value="$(arg num_obstacles)"/>
+      <arg name="world_size" value="$(arg world_size)"/>
+      <arg name="seed" value="$(arg seed)"/>
+      <arg name="red_ball_z" value="$(arg red_ball_z)"/>
+    </include>
+  </group>
+
+  <group if="$(arg woods_world_effective)">
+    <node pkg="drone_chase" type="spawn_red_ball.py"
+          name="spawn_red_ball" output="screen"
+          args="--x $(arg target_x) --y $(arg target_y) --z $(arg target_z) --model-sdf $(find drone_chase)/models/red_ball/model.sdf"/>
+
+    <group if="$(arg spawn_woods)">
+      <node pkg="drone_chase" type="spawn_random_woods.py"
+            name="spawn_random_woods" output="screen"
+            args="--seed $(arg seed)
+                  --area-x-min $(arg woods_area_x_min_effective)
+                  --area-x-max $(arg woods_area_x_max_effective)
+                  --area-y-min $(arg woods_area_y_min_effective)
+                  --area-y-max $(arg woods_area_y_max_effective)
+                  --num-trunks $(arg woods_num_trunks_effective)
+                  --num-branches $(arg woods_num_branches_effective)
+                  --num-fallen $(arg woods_num_fallen_effective)
+                  --uav-clearance $(arg woods_uav_clearance_effective)
+                  --target-x $(arg target_x)
+                  --target-y $(arg target_y)
+                  --target-clearance $(arg woods_target_clearance_effective)
+                  --max-attempts $(arg max_attempts)"/>
+    </group>
+  </group>
+</launch>

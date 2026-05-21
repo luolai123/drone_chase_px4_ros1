@@ -1,0 +1,7 @@
+std_msgs/Header header
+float32 front_min_depth
+float32 front_q05_depth
+float32 left_q05_depth
+float32 right_q05_depth
+float32 obstacle_area_ratio
+bool danger

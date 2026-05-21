@@ -1,0 +1,22 @@
+<launch>
+  <param name="/use_sim_time" value="true"/>
+
+  <!-- Offboard velocity test node only.
+       PX4 SITL + Gazebo + MAVROS are started separately via:
+         roslaunch px4 mavros_posix_sitl.launch vehicle:=iris
+  -->
+  <node pkg="drone_chase" type="offboard_velocity_test.py"
+        name="offboard_velocity_test" output="screen">
+    <!-- Target altitude: 0.5 m/s * 3 s = 1.5 m -->
+    <!-- Forward distance: 0.3 m/s * 5 s = 1.5 m -->
+    <rosparam>
+      rate: 20.0
+      takeoff_speed: 0.5
+      forward_speed: 0.3
+      takeoff_duration: 3.0
+      hover1_duration: 2.0
+      forward_duration: 5.0
+      hover2_duration: 3.0
+    </rosparam>
+  </node>
+</launch>

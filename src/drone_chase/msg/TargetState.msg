@@ -1,0 +1,9 @@
+std_msgs/Header header
+bool visible
+float32 u
+float32 v
+float32 radius_px
+float32 depth
+geometry_msgs/Point position_camera
+geometry_msgs/Point position_world
+float32 confidence

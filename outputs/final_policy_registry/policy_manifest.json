@@ -1,0 +1,331 @@
+{
+  "BC source": {
+    "aggregated_dataset": "/home/whk/vf_ws/outputs/phase7/bc_world0_dagger/bc_aggregated_dataset.npz",
+    "aggregated_summary": {
+      "bucket_counts_final": {
+        "capture": 7094,
+        "far": 7094,
+        "lost": 679,
+        "mid": 7094,
+        "near": 7094
+      },
+      "bucket_counts_raw": {
+        "capture": 139,
+        "far": 3174,
+        "lost": 679,
+        "mid": 3839,
+        "near": 7094
+      },
+      "inputs": [
+        {
+          "path": "/home/whk/vf_ws/outputs/phase7/bc_world0_demos/expert_demos_filtered.npz",
+          "rows": 3065,
+          "source": "expert",
+          "valid_rows": 3065
+        },
+        {
+          "path": "/home/whk/vf_ws/outputs/phase7/bc_world0_dagger/dagger_batch1_beta05.npz",
+          "rows": 4400,
+          "source": "dagger1",
+          "valid_rows": 4396
+        },
+        {
+          "path": "/home/whk/vf_ws/outputs/phase7/bc_world0_dagger/dagger_batch2_beta025.npz",
+          "rows": 4515,
+          "source": "dagger2",
+          "valid_rows": 4511
+        },
+        {
+          "path": "/home/whk/vf_ws/outputs/phase7/bc_world0_dagger/dagger_batch3_beta0.npz",
+          "rows": 3121,
+          "source": "dagger3",
+          "valid_rows": 2953
+        }
+      ],
+      "lost_recovery_ratio": 0.02336947169161934,
+      "near_capture_ratio": 0.48831526415419035,
+      "output": "/home/whk/vf_ws/outputs/phase7/bc_world0_dagger/bc_aggregated_dataset.npz",
+      "raw_valid_rows": 14925,
+      "removed_bad_done_rows": 16,
+      "removed_bad_safety_rows": 160,
+      "removed_nonfinite_rows": 0,
+      "selected_rows": 29055,
+      "source_counts_final": {
+        "dagger1": 8400,
+        "dagger2": 8794,
+        "dagger3": 4218,
+        "expert": 7643
+      }
+    },
+    "bc_policy_best": "/home/whk/vf_ws/outputs/phase7/bc_world0_dagger/bc_v2/bc_policy_best.pt",
+    "bc_rows": 29055,
+    "bc_train_rows": 23244,
+    "bc_v2_dir": "/home/whk/vf_ws/outputs/phase7/bc_world0_dagger/bc_v2",
+    "bc_val_rows": 5811
+  },
+  "PPO fine-tune run dir": "/home/whk/vf_ws/outputs/phase7/world0_ppo_from_bc_v2_10k_conservative_run4",
+  "VecNormalize status": {
+    "loaded_from": "/home/whk/vf_ws/outputs/final_policy_registry/best_world0_world1_vecnormalize.pkl",
+    "norm_reward": false,
+    "purpose": "Observation normalization for evaluation; statistics are frozen.",
+    "training": false
+  },
+  "action_dim": 4,
+  "action_mapping": {
+    "action_space": "Box(-1, 1, shape=(4,))",
+    "channels": [
+      "vx_body",
+      "vy_body",
+      "vz_body",
+      "yaw_rate"
+    ],
+    "max_vx": 0.5,
+    "max_vy": 0.3,
+    "max_vz": 0.25,
+    "max_yaw_rate": 0.6,
+    "min_vx": -0.2,
+    "raw_vx_body": "a0 * max_vx if a0 >= 0 else a0 * abs(min_vx)",
+    "raw_vy_body": "a1 * max_vy",
+    "raw_vz_body": "a2 * max_vz",
+    "raw_yaw_rate": "a3 * max_yaw_rate"
+  },
+  "checkpoint step": "2500",
+  "created_at": "2026-05-20T16:36:12",
+  "registry_updated_at": "2026-05-21T16:23:03+08:00",
+  "known limitations": [
+    "This registry validates the frozen policy for world0, world1 sparse obstacles, woods_easy, and random_woods only.",
+    "dense woods not validated",
+    "woods_hard not validated",
+    "dynamic obstacles not validated",
+    "real RGB-D not validated",
+    "real flight not validated",
+    "The policy is fixed; Phase 7.4C performed no training, fine-tuning, reward change, safety-filter control change, action-mapping change, or policy artifact replacement."
+  ],
+  "observation_dim": 20,
+  "policy_name": "world0_world1_sparse_best_ppo_from_bc_v2_step2500",
+  "registered_validation_scope": [
+    "world0 robustness",
+    "world1 sparse obstacle zero-shot",
+    "world1 sparse obstacle robustness/stress",
+    "woods_easy zero-shot",
+    "woods_easy robustness/stress",
+    "woods_easy reset gate",
+    "random_woods zero-shot",
+    "random_woods robustness/stress"
+  ],
+  "registered_model_path": "/home/whk/vf_ws/outputs/final_policy_registry/best_world0_world1_policy.zip",
+  "registered_model_sha256": "f571329c999a303507d86e8a3ab19a9436fc32056e8ae171b81e0bac222f21b0",
+  "registered_vecnormalize_path": "/home/whk/vf_ws/outputs/final_policy_registry/best_world0_world1_vecnormalize.pkl",
+  "registered_vecnormalize_sha256": "37a9cf28651731ba90593ce155bec5c717d113186a5a1fbe175978ab407b6033",
+  "source_model_path": "/home/whk/vf_ws/outputs/phase7/world0_ppo_from_bc_v2_10k_conservative_run4/checkpoints/ppo_step_2500.zip",
+  "source_vecnormalize_path": "/home/whk/vf_ws/outputs/phase7/world0_ppo_from_bc_v2_10k_conservative_run4/checkpoints/vecnormalize_step_2500.pkl",
+  "tested worlds": [
+    {
+      "world": "world_0",
+      "coverage": "empty world red-ball chase robustness"
+    },
+    {
+      "world": "world_1",
+      "coverage": "sparse obstacles: 4 obstacle zero-shot, 4/6/8 obstacle stress, front obstacle intervention"
+    },
+    {
+      "world": "woods_easy",
+      "coverage": "woods_easy zero-shot, robustness/stress, and reset-gate validation only"
+    },
+    {
+      "world": "random_woods",
+      "coverage": "random_woods zero-shot and robustness/stress validation; polluted attempt excluded from final registry"
+    }
+  ],
+  "training_method": "DAgger-lite + BC v2 initialization, then conservative PPO fine-tuning from BC v2 on world0; checkpoint selected by deterministic sweep.",
+  "phase7_3c_registry_update": {
+    "allow_claim_all_woods_passed": false,
+    "allow_enter_random_woods_zero_shot": true,
+    "scope": "Final Registry Update with woods_easy results only.",
+    "source_reports": [
+      "/home/whk/vf_ws/outputs/phase7/woods_easy_zeroshot_from_final_policy/phase7_3a_report.md",
+      "/home/whk/vf_ws/outputs/phase7/woods_easy_robustness_from_final_policy/phase7_3b_report.md",
+      "/home/whk/vf_ws/outputs/phase7/woods_easy_reset_fix/phase7_3c_reset_fix_report.md"
+    ],
+    "updated_at": "2026-05-20T22:22:54+08:00"
+  },
+  "validated_claims": [
+    "ROS1/PX4/Gazebo RGB-D drone red-ball chase simulation system has been implemented.",
+    "Rule expert, DAgger/BC, PPO fine-tuning, and safety-filter closed loop have been completed.",
+    "Final registered policy has passed world0 validation.",
+    "Final registered policy has passed world1 sparse obstacle validation.",
+    "Final registered policy has passed woods_easy zero-shot, robustness/stress, and reset-gate validation.",
+    "Final registered policy has passed random_woods zero-shot validation.",
+    "Final registered policy has passed random_woods robustness/stress validation.",
+    "The current frozen policy has completed multi-scenario simulation validation for world0, world1 sparse, woods_easy, and random_woods."
+  ],
+  "unvalidated_claims": [
+    "Do not claim all woods have passed.",
+    "Do not claim dense woods has passed.",
+    "Do not claim woods_hard has passed.",
+    "Do not claim dynamic obstacles have passed.",
+    "Do not claim real hardware deployment has passed.",
+    "Do not claim real RGB-D perception has passed."
+  ],
+  "validation summary": {
+    "world0_robustness": {
+      "depth_stop_count": 0,
+      "emergency_count": 23,
+      "episodes": 30,
+      "final_distance_mean": 0.7835551997025808,
+      "height_violation_count": 0,
+      "min_distance_mean": 0.7834113498528799,
+      "offboard_drop_count": 0,
+      "out_of_bounds_count": 0,
+      "raw_timeout_count": 0,
+      "reset_pollution_detected": false,
+      "success_rate": 1.0,
+      "target_visible_ratio_mean": 1.0
+    },
+    "world1_robustness_stress": {
+      "collision_count": 0,
+      "depth_stop_count": 0,
+      "final_distance_mean": 0.7861242671807607,
+      "group_d_safety_intervention_passed": true,
+      "group_success_rates": {
+        "A": 1.0,
+        "B": 1.0,
+        "C": 1.0,
+        "D": 1.0
+      },
+      "height_violation_count": 0,
+      "min_distance_mean": 0.7861242671807607,
+      "offboard_drop_count": 0,
+      "out_of_bounds_count": 0,
+      "raw_timeout_count": 0,
+      "reset_pollution_detected": false,
+      "target_visible_ratio_mean": 0.9892473205101446,
+      "total_episodes": 90,
+      "total_success_rate": 1.0
+    },
+    "world1_zero_shot": {
+      "collision_count": 0,
+      "depth_stop_count": 0,
+      "episodes": 30,
+      "final_distance_mean": 0.7842054863770803,
+      "height_violation_count": 0,
+      "min_distance_mean": 0.7842054863770803,
+      "obstacles_per_episode": 4,
+      "offboard_drop_count": 0,
+      "out_of_bounds_count": 0,
+      "raw_timeout_count": 0,
+      "reset_pollution_detected": false,
+      "success_rate": 1.0,
+      "target_visible_ratio_mean": 1.0
+    },
+    "woods_easy_reset_fix": {
+      "altitude_recovery_success_rate": 1.0,
+      "clearance_ok_rate": 1.0,
+      "height_violation_count": 0,
+      "offboard_loss_count": 0,
+      "out_of_bounds_count": 0,
+      "previous_reset_success_rate": 0.55,
+      "reset_gate_passed": true,
+      "reset_pollution_detected": false,
+      "reset_success_rate": 1.0,
+      "target_respawn_failures": 0,
+      "target_visible_after_gate_rate": 1.0,
+      "target_visible_initial_rate": 1.0,
+      "total_trials": 50,
+      "woods_spawn_success_rate": 1.0
+    },
+    "woods_easy_robustness_stress": {
+      "collision_emergency_failure_count": 0,
+      "collision_emergency_failure_rate": 0.0,
+      "depth_stop_count": 0,
+      "emergency_count": 77,
+      "final_distance_mean": 0.7845576955212488,
+      "group_d_safety_intervention_passed": true,
+      "group_success_rates": {
+        "A": 1.0,
+        "B": 1.0,
+        "C": 1.0,
+        "D": 1.0
+      },
+      "height_violation_rate": 0.0,
+      "min_distance_mean": 0.7845576955212488,
+      "offboard_drop_count": 0,
+      "out_of_bounds_rate": 0.0,
+      "raw_timeout_count": 0,
+      "reset_pollution_detected": false,
+      "target_visible_ratio_mean": 0.9987301587301587,
+      "timeout_rate": 0.0,
+      "total_episodes": 90,
+      "total_success_rate": 1.0
+    },
+    "woods_easy_zero_shot": {
+      "collision_emergency_failure_count": 1,
+      "collision_emergency_failure_rate": 0.03333333333333333,
+      "depth_stop_count": 35,
+      "emergency_count": 19,
+      "episodes": 30,
+      "final_distance_mean": 0.8083254218101501,
+      "height_violation_rate": 0.0,
+      "min_distance_mean": 0.8083254218101501,
+      "offboard_drop_count": 0,
+      "out_of_bounds_rate": 0.0,
+      "raw_timeout_count": 0,
+      "reset_pollution_detected": false,
+      "success_count": 29,
+      "success_rate": 0.9666666666666667,
+      "target_visible_ratio_mean": 0.9973333333333334,
+      "timeout_rate": 0.0
+    },
+    "random_woods_zero_shot": {
+      "episodes": 30,
+      "success_rate": 0.9667,
+      "timeout_rate": 0.0333,
+      "collision_emergency_failure_rate": 0.0,
+      "target_visible_ratio_mean": 1.0,
+      "final_distance_mean": 0.787,
+      "min_distance_mean": 0.7867,
+      "raw_timeout_count": 0,
+      "offboard_drop_count": 0,
+      "reset_pollution_detected": false,
+      "source_report": "/home/whk/vf_ws/outputs/phase7/random_woods_zeroshot_from_final_policy/phase7_4a_report.md",
+      "source_summary": "/home/whk/vf_ws/outputs/phase7/random_woods_zeroshot_from_final_policy/random_woods_zeroshot_summary.json"
+    },
+    "random_woods_robustness": {
+      "episodes": 90,
+      "success_rate": 0.9778,
+      "group_a_success_rate": 0.9667,
+      "group_b_success_rate": 1.0,
+      "group_c_success_rate": 0.95,
+      "group_d_safety_intervention": "passed",
+      "timeout_rate": 0.0222,
+      "collision_emergency_failure_rate": 0.0111,
+      "out_of_bounds_rate": 0.0,
+      "height_violation_rate": 0.0,
+      "target_visible_ratio_mean": 0.9918,
+      "final_distance_mean": 0.8004,
+      "min_distance_mean": 0.7977,
+      "raw_timeout_count": 0,
+      "offboard_drop_count": 0,
+      "reset_pollution_detected": false,
+      "source_report": "/home/whk/vf_ws/outputs/phase7/random_woods_robustness_from_final_policy/phase7_4b_report.md",
+      "source_summary": "/home/whk/vf_ws/outputs/phase7/random_woods_robustness_from_final_policy/random_woods_robustness_summary.json",
+      "excluded_polluted_attempt": "/home/whk/vf_ws/outputs/phase7/random_woods_robustness_from_final_policy/attempt_reset_polluted_20260521_013011"
+    }
+  },
+  "phase7_4c_registry_update": {
+    "updated_at": "2026-05-21T16:23:03+08:00",
+    "scope": "random_woods finalization plus final_policy_registry report/table/manifest/reproduce update.",
+    "source_reports": [
+      "/home/whk/vf_ws/outputs/phase7/random_woods_zeroshot_from_final_policy/phase7_4a_report.md",
+      "/home/whk/vf_ws/outputs/phase7/random_woods_robustness_from_final_policy/phase7_4b_report.md"
+    ],
+    "excluded_polluted_attempt": "/home/whk/vf_ws/outputs/phase7/random_woods_robustness_from_final_policy/attempt_reset_polluted_20260521_013011",
+    "allow_enter_phase7_4c": true,
+    "allow_claim_world0_passed": true,
+    "allow_claim_world1_sparse_passed": true,
+    "allow_claim_woods_easy_passed": true,
+    "allow_claim_random_woods_passed": true,
+    "allow_claim_all_woods_passed": false,
+    "policy_artifacts_unchanged": true
+  }
+}

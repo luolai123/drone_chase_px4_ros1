@@ -1,0 +1,57 @@
+env:
+  world_type: world_0
+  reset_mode: episode_soft
+  step_dt: 0.1
+  max_episode_steps: 400
+  initial_grace_steps: 20
+  start_z_min: 1.0
+  start_z_max: 2.0
+  reset_ready_timeout: 15.0
+  reset_zero_cmd_duration: 1.0
+  world_x_limit: 50.0
+  world_y_limit: 50.0
+  respawn_target_on_reset: true
+  target_spawn_distance_min: 3.0
+  target_spawn_distance_max: 5.0
+  target_spawn_lateral_min: -0.5
+  target_spawn_lateral_max: 0.5
+  target_spawn_z: 1.0
+  capture_distance: 0.8
+  success_distance: 0.8
+  success_hold_steps: 3
+  approach_weight: 5.0
+  distance_weight: -0.02
+  visibility_reward: 0.2
+  visibility_loss: -0.5
+  center_weight: 0.3
+  obstacle_weight: -2.0
+  obstacle_close_depth: 0.5
+  obstacle_close_penalty: 0.0
+  smooth_weight: -0.01
+  success_bonus: 50.0
+  timeout_penalty: -10.0
+  height_violation_penalty: -30.0
+  collision_penalty: -50.0
+
+ppo:
+  total_timesteps: 30000
+  learning_rate: 0.0003
+  n_steps: 512
+  batch_size: 128
+  n_epochs: 5
+  gamma: 0.98
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.02
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+
+save:
+  output_dir: /home/whk/vf_ws/outputs/phase7/world0_30k_curriculum_v1
+  model_name: ppo_lowdim_world0_curriculum_v1
+  save_freq: 5000
+
+eval:
+  eval_episodes: 5
+  deterministic: true
+  eval_freq: 5000

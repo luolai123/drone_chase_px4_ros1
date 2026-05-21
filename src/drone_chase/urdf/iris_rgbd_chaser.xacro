@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="iris_rgbd_chaser_camera_mount">
+  <xacro:property name="camera_x" value="0.12"/>
+  <xacro:property name="camera_y" value="0.0"/>
+  <xacro:property name="camera_z" value="0.0"/>
+  <xacro:property name="camera_width" value="320"/>
+  <xacro:property name="camera_height" value="240"/>
+  <xacro:property name="camera_rate" value="20"/>
+  <xacro:property name="camera_hfov" value="1.3962634"/>
+  <xacro:property name="depth_near" value="0.2"/>
+  <xacro:property name="depth_far" value="10.0"/>
+
+  <!-- This xacro documents the Phase 2 camera mount. PX4 SITL loads the SDF model
+       in models/iris_rgbd_chaser/iris_rgbd_chaser.sdf for runtime stability. -->
+  <link name="camera_link">
+    <inertial>
+      <mass value="0.03"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1.0e-5" ixy="0" ixz="0" iyy="1.0e-5" iyz="0" izz="1.0e-5"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.04 0.08 0.04"/>
+      </geometry>
+      <material name="camera_black">
+        <color rgba="0.02 0.02 0.02 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.04 0.08 0.04"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="${camera_x} ${camera_y} ${camera_z}" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="camera_link">
+    <sensor name="rgbd_camera" type="depth">
+      <pose>0 0 0 0 0 0</pose>
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>${camera_rate}</update_rate>
+      <camera>
+        <horizontal_fov>${camera_hfov}</horizontal_fov>
+        <image>
+          <width>${camera_width}</width>
+          <height>${camera_height}</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>${depth_near}</near>
+          <far>${depth_far}</far>
+        </clip>
+      </camera>
+      <plugin name="rgbd_camera_controller" filename="libgazebo_ros_openni_kinect.so">
+        <robotNamespace>/uav</robotNamespace>
+        <cameraName>camera</cameraName>
+        <alwaysOn>true</alwaysOn>
+        <updateRate>${camera_rate}</updateRate>
+        <pointCloudCutoff>${depth_near}</pointCloudCutoff>
+        <pointCloudCutoffMax>${depth_far}</pointCloudCutoffMax>
+        <imageTopicName>rgb/image_raw</imageTopicName>
+        <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
+        <depthImageTopicName>depth/image_raw</depthImageTopicName>
+        <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+        <pointCloudTopicName>depth/points</pointCloudTopicName>
+        <frameName>uav_camera_link</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+</robot>

@@ -1,0 +1,9 @@
+# Paper-Style Abstract
+
+This project presents a closed-loop RGB-D drone chase system for red-ball interception in ROS1/PX4/Gazebo simulation. The system combines Gazebo-based RGB-D sensing, PX4 SITL flight control, MAVROS OFFBOARD command bridging, target perception, depth-risk estimation, and a runtime safety filter that mediates all policy commands before publishing velocity setpoints. A low-dimensional `GazeboChaseEnv` interface is used to train and evaluate policies from perception, depth-risk, vehicle-state, and safety-runtime observations.
+
+Initial pure PPO training from scratch was unstable and exposed reward-hacking failure modes. After reward auditing, the final training route used rule-expert demonstrations, DAgger-lite data aggregation, BC v2 imitation learning, and conservative PPO fine-tuning from the BC v2 initialization. The final frozen policy was selected from a deterministic checkpoint sweep and registered with frozen VecNormalize statistics.
+
+The final registered policy was evaluated without additional training or policy modification across multiple simulated environments. It achieved 30/30 success in world0 robustness validation, 30/30 success in world1 sparse-obstacle zero-shot validation, 90/90 success in world1 robustness/stress validation, 29/30 success in woods_easy zero-shot validation, 90/90 success in woods_easy robustness/stress validation, 29/30 success in random_woods zero-shot validation, and 88/90 success in random_woods robustness/stress validation. Safety intervention gates, including front-obstacle intervention, passed in the simulated validation suite.
+
+These results demonstrate reproducible multi-scenario simulation performance for a frozen RGB-D drone chase policy under a fixed safety-filtered control loop. The current validation does not cover dense woods, woods_hard, dynamic obstacles, real RGB-D perception, real hardware deployment, or real-world UAV generalization.

@@ -1,0 +1,38 @@
+<launch>
+  <param name="/use_sim_time" value="true" />
+
+  <arg name="debug" default="true" />
+  <arg name="desired_distance" default="0.8" />
+  <arg name="capture_distance" default="0.5" />
+  <arg name="target_altitude" default="1.5" />
+  <arg name="max_vx" default="0.5" />
+  <arg name="search_yaw_rate" default="0.3" />
+  <arg name="avoid_stop_depth" default="0.6" />
+  <arg name="avoid_emergency_depth" default="0.35" />
+
+  <node pkg="drone_chase" type="rule_based_chaser.py" name="rule_based_chaser" output="screen">
+    <param name="debug" value="$(arg debug)" />
+    <param name="desired_distance" value="$(arg desired_distance)" />
+    <param name="capture_distance" value="$(arg capture_distance)" />
+    <param name="k_dist" value="0.35" />
+    <param name="k_yaw" value="0.8" />
+    <param name="k_z" value="0.35" />
+    <param name="max_vx" value="$(arg max_vx)" />
+    <param name="max_vy" value="0.3" />
+    <param name="max_vz" value="0.25" />
+    <param name="max_yaw_rate" value="0.6" />
+    <param name="min_vx" value="-0.2" />
+    <param name="search_yaw_rate" value="$(arg search_yaw_rate)" />
+    <param name="avoid_stop_depth" value="$(arg avoid_stop_depth)" />
+    <param name="avoid_emergency_depth" value="$(arg avoid_emergency_depth)" />
+    <param name="min_height" value="0.6" />
+    <param name="max_height" value="2.5" />
+  </node>
+
+  <node pkg="drone_chase" type="cmd_vel_forwarder.py" name="cmd_vel_forwarder" output="screen">
+    <param name="debug" value="$(arg debug)" />
+    <param name="target_altitude" value="$(arg target_altitude)" />
+    <param name="takeoff_vz" value="0.5" />
+    <param name="raw_timeout" value="0.5" />
+  </node>
+</launch>

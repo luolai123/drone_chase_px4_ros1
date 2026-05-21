@@ -1,0 +1,40 @@
+env:
+  world_type: world_0
+  reset_mode: episode_soft
+  step_dt: 0.1
+  max_episode_steps: 300
+  initial_grace_steps: 20
+  start_z_min: 1.0
+  start_z_max: 2.0
+  reset_ready_timeout: 15.0
+  reset_zero_cmd_duration: 1.0
+  world_x_limit: 50.0
+  world_y_limit: 50.0
+  respawn_target_on_reset: true
+  target_spawn_distance_min: 3.0
+  target_spawn_distance_max: 4.0
+  target_spawn_lateral_min: -0.5
+  target_spawn_lateral_max: 0.5
+  target_spawn_z: 1.0
+
+ppo:
+  total_timesteps: 2000
+  learning_rate: 0.0003
+  n_steps: 256
+  batch_size: 64
+  n_epochs: 5
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.01
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+
+save:
+  output_dir: /home/whk/vf_ws/outputs/phase7/world0_stable_sanity
+  model_name: ppo_lowdim_world0_stable
+  save_freq: 1000
+
+eval:
+  eval_episodes: 3
+  deterministic: true

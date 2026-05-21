@@ -1,0 +1,39 @@
+env:
+  world_type: woods_easy
+  reset_mode: soft
+  max_episode_steps: 400
+  step_dt: 0.1
+
+woods:
+  seed: 10
+  num_trunks: 8
+  num_branches: 15
+  num_fallen: 3
+  area_x_min: 1.5
+  area_x_max: 6.5
+  area_y_min: -3.0
+  area_y_max: 3.0
+  uav_clearance: 1.5
+  target_clearance: 0.8
+
+ppo:
+  total_timesteps: 50000
+  learning_rate: 0.0003
+  n_steps: 512
+  batch_size: 128
+  n_epochs: 5
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.01
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+
+save:
+  output_dir: /home/whk/vf_ws/outputs/phase7/woods_easy
+  model_name: ppo_lowdim_woods_easy
+  save_freq: 10000
+
+eval:
+  eval_episodes: 5
+  deterministic: true

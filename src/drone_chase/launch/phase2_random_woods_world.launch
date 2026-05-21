@@ -1,0 +1,63 @@
+<launch>
+  <param name="/use_sim_time" value="true"/>
+
+  <arg name="gui" default="true"/>
+  <arg name="debug" default="false"/>
+  <arg name="verbose" default="false"/>
+  <arg name="paused" default="false"/>
+  <arg name="fcu_url" default="udp://:14540@localhost:14580"/>
+
+  <arg name="seed" default="42"/>
+  <arg name="target_x" default="4.0"/>
+  <arg name="target_y" default="0.0"/>
+  <arg name="target_z" default="1.0"/>
+  <arg name="num_trunks" default="18"/>
+  <arg name="num_branches" default="45"/>
+  <arg name="num_fallen" default="10"/>
+  <arg name="world_size" default="12.0"/>
+  <arg name="uav_clearance" default="1.0"/>
+  <arg name="target_clearance" default="0.6"/>
+  <arg name="max_attempts" default="500"/>
+
+  <arg name="area_x_min" default="1.0"/>
+  <arg name="area_x_max" default="$(eval float(arg('world_size')) * 0.5 + 0.5)"/>
+  <arg name="area_y_min" default="$(eval -float(arg('world_size')) * 0.5 + 2.5)"/>
+  <arg name="area_y_max" default="$(eval float(arg('world_size')) * 0.5 - 2.5)"/>
+
+  <env name="GAZEBO_MODEL_PATH"
+       value="$(find drone_chase)/models:$(optenv GAZEBO_MODEL_PATH):/home/whk/PX4-Autopilot/Tools/sitl_gazebo/models"/>
+
+  <rosparam file="$(find drone_chase)/config/camera_params.yaml" command="load" ns="/uav"/>
+  <rosparam file="$(find drone_chase)/config/random_woods.yaml" command="load" ns="/drone_chase/random_woods_defaults"/>
+
+  <include file="$(find px4)/launch/mavros_posix_sitl.launch">
+    <arg name="vehicle" value="iris"/>
+    <arg name="sdf" value="$(find drone_chase)/models/iris_rgbd_chaser/iris_rgbd_chaser.sdf"/>
+    <arg name="world" value="$(find drone_chase)/worlds/world_2_random_woods.world"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="debug" value="$(arg debug)"/>
+    <arg name="verbose" value="$(arg verbose)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="fcu_url" value="$(arg fcu_url)"/>
+  </include>
+
+  <node pkg="drone_chase" type="spawn_red_ball.py"
+        name="spawn_red_ball" output="screen"
+        args="--x $(arg target_x) --y $(arg target_y) --z $(arg target_z) --model-sdf $(find drone_chase)/models/red_ball/model.sdf"/>
+
+  <node pkg="drone_chase" type="spawn_random_woods.py"
+        name="spawn_random_woods" output="screen"
+        args="--seed $(arg seed)
+              --area-x-min $(arg area_x_min)
+              --area-x-max $(arg area_x_max)
+              --area-y-min $(arg area_y_min)
+              --area-y-max $(arg area_y_max)
+              --num-trunks $(arg num_trunks)
+              --num-branches $(arg num_branches)
+              --num-fallen $(arg num_fallen)
+              --uav-clearance $(arg uav_clearance)
+              --target-x $(arg target_x)
+              --target-y $(arg target_y)
+              --target-clearance $(arg target_clearance)
+              --max-attempts $(arg max_attempts)"/>
+</launch>

@@ -1,0 +1,19 @@
+<launch>
+  <param name="/use_sim_time" value="true"/>
+
+  <arg name="spawn_obstacles" default="false"/>
+  <arg name="num_obstacles" default="4"/>
+  <arg name="world_size" default="12.0"/>
+  <arg name="seed" default="-1"/>
+  <arg name="red_ball_z" default="1.0"/>
+
+  <node pkg="drone_chase" type="spawn_red_ball.py"
+        name="spawn_red_ball" output="screen"
+        args="--random --z $(arg red_ball_z) --seed $(arg seed) --model-sdf $(find drone_chase)/models/red_ball/model.sdf"/>
+
+  <group if="$(arg spawn_obstacles)">
+    <node pkg="drone_chase" type="spawn_random_obstacles.py"
+          name="spawn_random_obstacles" output="screen"
+          args="--num $(arg num_obstacles) --world-size $(arg world_size) --seed $(arg seed)"/>
+  </group>
+</launch>

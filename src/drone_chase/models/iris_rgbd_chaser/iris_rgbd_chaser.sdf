@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="iris_rgbd_chaser">
+    <include>
+      <uri>model://iris</uri>
+    </include>
+
+    <include>
+      <uri>model://rgbd_chaser_camera</uri>
+      <pose>0.12 0 0 0 0 0</pose>
+    </include>
+
+    <joint name="rgbd_chaser_camera_joint" type="fixed">
+      <parent>iris::base_link</parent>
+      <child>rgbd_chaser_camera::camera_link</child>
+    </joint>
+  </model>
+</sdf>

@@ -1,0 +1,52 @@
+# Catkin / ROS build products
+build/
+devel/
+install/
+log/
+logs/
+.catkin_tools/
+.catkin_workspace
+
+# Broken or temporary git metadata backups
+.git_broken_empty_backup_*
+
+# Python cache
+*.pyc
+*.pyo
+__pycache__/
+**/__pycache__/
+**pycache**/
+
+# ROS / Gazebo / PX4 runtime artifacts
+*.bag
+*.active
+*.log
+*.tmp
+*.swp
+*.ulg
+dataman
+.gazebo/
+.ros/
+.DS_Store
+
+# Large Phase 7 rollout/event artifacts
+outputs/phase7/*/rollouts*.csv
+outputs/phase7/*/*rollouts.csv
+outputs/phase7/*/safety_events.csv
+outputs/phase7/*/failure_cases.csv
+
+# Model artifacts are referenced by manifest SHA/path, not stored in normal Git.
+*.pt
+*.pth
+*.zip
+*.pkl
+
+# Keep final registry and final packaging documents.
+!outputs/final_policy_registry/*.json
+!outputs/final_policy_registry/*.csv
+!outputs/final_policy_registry/*.md
+!outputs/final_project_report.md
+!outputs/final_results_summary.md
+!outputs/final_demo_commands.md
+!outputs/final_claims_and_limits.md
+!outputs/final_paper_style_abstract.md

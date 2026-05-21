@@ -1,0 +1,50 @@
+<launch>
+  <!-- Phase 6 environment runtime: only safety_filter_node.
+       Do NOT launch rule_based_chaser or cmd_vel_forwarder here.
+       Phase 6 test scripts publish /raw_cmd_vel directly.
+
+       Prerequisites (launch in separate terminals):
+         1. roslaunch drone_chase phase2_chase_world.launch world:=world_0
+         2. roslaunch drone_chase phase3_perception.launch debug:=false
+         3. THIS FILE
+         4. rosrun drone_chase phase6_random_env_test.py
+  -->
+
+  <param name="/use_sim_time" value="true" />
+
+  <arg name="debug" default="true" />
+  <arg name="target_altitude" default="1.5" />
+
+  <arg name="max_vx" default="0.5" />
+  <arg name="min_vx" default="-0.2" />
+  <arg name="max_vy" default="0.3" />
+  <arg name="max_vz" default="0.25" />
+  <arg name="max_yaw_rate" default="0.6" />
+
+  <arg name="avoid_stop_depth" default="0.6" />
+  <arg name="avoid_emergency_depth" default="0.35" />
+  <arg name="danger_area_ratio" default="0.5" />
+
+  <arg name="raw_cmd_timeout" default="0.5" />
+  <arg name="target_timeout" default="1.0" />
+
+  <arg name="min_height" default="0.6" />
+  <arg name="max_height" default="2.5" />
+
+  <node pkg="drone_chase" type="safety_filter_node.py" name="safety_filter_node" output="screen">
+    <param name="debug" value="$(arg debug)" />
+    <param name="target_altitude" value="$(arg target_altitude)" />
+    <param name="max_vx" value="$(arg max_vx)" />
+    <param name="min_vx" value="$(arg min_vx)" />
+    <param name="max_vy" value="$(arg max_vy)" />
+    <param name="max_vz" value="$(arg max_vz)" />
+    <param name="max_yaw_rate" value="$(arg max_yaw_rate)" />
+    <param name="avoid_stop_depth" value="$(arg avoid_stop_depth)" />
+    <param name="avoid_emergency_depth" value="$(arg avoid_emergency_depth)" />
+    <param name="danger_area_ratio" value="$(arg danger_area_ratio)" />
+    <param name="raw_cmd_timeout" value="$(arg raw_cmd_timeout)" />
+    <param name="target_timeout" value="$(arg target_timeout)" />
+    <param name="min_height" value="$(arg min_height)" />
+    <param name="max_height" value="$(arg max_height)" />
+  </node>
+</launch>

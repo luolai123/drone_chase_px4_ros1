@@ -1,0 +1,15 @@
+seed: 42
+area_x_min: 1.0
+area_x_max: 6.5
+area_y_min: -3.5
+area_y_max: 3.5
+num_trunks: 18
+num_branches: 45
+num_fallen: 10
+uav_clearance: 1.0
+target_x: 4.0
+target_y: 0.0
+target_z: 1.0
+target_clearance: 0.6
+max_attempts: 500
+world_size: 12.0
