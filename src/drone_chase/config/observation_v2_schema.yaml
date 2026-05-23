@@ -1,0 +1,204 @@
+version: observation_v2
+dim: 28
+status: design_only_default_disabled
+description: >
+  Candidate extended low-dimensional observation for future Phase 9 training.
+  This schema is not loaded by GazeboChaseEnv by default and is not compatible
+  with the current frozen observation_v1 policy.
+fields:
+  - name: target_visible
+    index: 0
+    source: /target/state.visible
+    normalization: binary_0_1
+    default_value: 0.0
+    description: Target detector visibility flag.
+    required: true
+  - name: target_x_camera
+    index: 1
+    source: /target/state.position_camera.x
+    normalization: clip_-10_10_m
+    default_value: 0.0
+    description: Target horizontal position in camera frame.
+    required: true
+  - name: target_y_camera
+    index: 2
+    source: /target/state.position_camera.y
+    normalization: clip_-10_10_m
+    default_value: 0.0
+    description: Target vertical position in camera frame.
+    required: true
+  - name: target_z_camera
+    index: 3
+    source: /target/state.position_camera.z
+    normalization: clip_0_10_m
+    default_value: 10.0
+    description: Forward target depth in camera frame.
+    required: true
+  - name: target_distance
+    index: 4
+    source: /target/state.depth
+    normalization: clip_0_10_m
+    default_value: 10.0
+    description: Scalar target distance/depth retained for stopping behavior.
+    required: true
+  - name: target_u
+    index: 5
+    source: /target/state.u
+    normalization: clip_-1.5_1.5
+    default_value: 0.0
+    description: Normalized horizontal image offset.
+    required: true
+  - name: target_v
+    index: 6
+    source: /target/state.v
+    normalization: clip_-1.5_1.5
+    default_value: 0.0
+    description: Normalized vertical image offset.
+    required: true
+  - name: target_confidence
+    index: 7
+    source: /target/state.confidence
+    normalization: clip_0_1
+    default_value: 0.0
+    description: Detector confidence from the target state.
+    required: false
+  - name: target_visible_ratio_window
+    index: 8
+    source: /debug/target_detection_quality.visible_ratio_window
+    normalization: clip_0_1
+    default_value: 0.0
+    description: Temporal visibility stability over the recent target window.
+    required: false
+  - name: target_lost_frames_normalized
+    index: 9
+    source: /debug/target_detection_quality.lost_frames
+    normalization: clip_0_1_after_divide_by_20
+    default_value: 1.0
+    description: Recent target-lost run length normalized by target_lost_window.
+    required: false
+  - name: depth_valid_ratio
+    index: 10
+    source: /debug/target_detection_quality.depth_valid_ratio
+    normalization: clip_0_1
+    default_value: 0.0
+    description: Valid depth support inside the detected target mask.
+    required: false
+  - name: radius_px_smooth_normalized
+    index: 11
+    source: /debug/target_detection_quality.radius_px_smooth
+    normalization: clip_0_1_after_divide_by_80_px
+    default_value: 0.0
+    description: Smoothed target image radius normalized for near-capture context.
+    required: false
+  - name: detection_quality_score
+    index: 12
+    source: /debug/target_detection_quality.quality
+    normalization: lost_0_unstable_0.35_weak_depth_0.45_small_0.5_good_1
+    default_value: 0.0
+    description: Ordinal quality score for target debug quality category.
+    required: false
+  - name: sector_far_left_q05
+    index: 13
+    source: /debug/depth_risk_extended.sectors.far_left.q05
+    normalization: clip_0_10_m
+    default_value: 10.0
+    description: Far-left depth sector q05.
+    required: false
+  - name: sector_left_q05
+    index: 14
+    source: /debug/depth_risk_extended.sectors.left.q05
+    normalization: clip_0_10_m
+    default_value: 10.0
+    description: Left depth sector q05.
+    required: false
+  - name: sector_front_q05
+    index: 15
+    source: /debug/depth_risk_extended.sectors.front.q05
+    normalization: clip_0_10_m
+    default_value: 10.0
+    description: Front depth sector q05.
+    required: false
+  - name: sector_right_q05
+    index: 16
+    source: /debug/depth_risk_extended.sectors.right.q05
+    normalization: clip_0_10_m
+    default_value: 10.0
+    description: Right depth sector q05.
+    required: false
+  - name: sector_far_right_q05
+    index: 17
+    source: /debug/depth_risk_extended.sectors.far_right.q05
+    normalization: clip_0_10_m
+    default_value: 10.0
+    description: Far-right depth sector q05.
+    required: false
+  - name: front_q05_smoothed
+    index: 18
+    source: /debug/depth_risk_extended.front_q05_smoothed
+    normalization: clip_0_10_m
+    default_value: 10.0
+    description: Smoothed front q05 depth for robust obstacle context.
+    required: false
+  - name: obstacle_area_ratio
+    index: 19
+    source: /obstacle/risk.obstacle_area_ratio
+    normalization: clip_0_1
+    default_value: 0.0
+    description: Fraction of front ROI closer than safe_depth.
+    required: true
+  - name: obstacle_danger
+    index: 20
+    source: /obstacle/risk.danger
+    normalization: binary_0_1
+    default_value: 0.0
+    description: Legacy obstacle danger flag.
+    required: true
+  - name: drone_z
+    index: 21
+    source: /mavros/local_position/pose.position.z
+    normalization: clip_0_5_m
+    default_value: 0.0
+    description: UAV altitude.
+    required: true
+  - name: drone_vx
+    index: 22
+    source: /mavros/local_position/velocity_local.body_vx
+    normalization: clip_-3_3_mps
+    default_value: 0.0
+    description: UAV body-frame forward velocity.
+    required: true
+  - name: drone_vy
+    index: 23
+    source: /mavros/local_position/velocity_local.body_vy
+    normalization: clip_-3_3_mps
+    default_value: 0.0
+    description: UAV body-frame lateral velocity.
+    required: true
+  - name: drone_vz
+    index: 24
+    source: /mavros/local_position/velocity_local.twist.linear.z
+    normalization: clip_-2_2_mps
+    default_value: 0.0
+    description: UAV vertical velocity.
+    required: true
+  - name: prev_vx
+    index: 25
+    source: previous_action.vx_body
+    normalization: clip_-0.5_0.5_mps
+    default_value: 0.0
+    description: Previous commanded body-frame forward speed.
+    required: true
+  - name: prev_vz
+    index: 26
+    source: previous_action.vz
+    normalization: clip_-0.25_0.25_mps
+    default_value: 0.0
+    description: Previous commanded vertical speed.
+    required: true
+  - name: prev_yaw_rate
+    index: 27
+    source: previous_action.yaw_rate
+    normalization: clip_-0.6_0.6_radps
+    default_value: 0.0
+    description: Previous commanded yaw rate.
+    required: true

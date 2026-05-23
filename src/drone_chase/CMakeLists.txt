@@ -98,6 +98,11 @@ catkin_install_python(PROGRAMS
   scripts/phase7_woods_easy_reset_fix_eval.py
   scripts/phase7_random_woods_zeroshot_eval.py
   scripts/phase7_random_woods_robustness_eval.py
+  scripts/phase8_perception_diagnostic_recorder.py
+  scripts/phase8_perception_feature_regression_eval.py
+  scripts/phase8_policy_feature_ablation_eval.py
+  scripts/phase8_perception_debug_correlation_analysis.py
+  scripts/phase8_build_observation_v2_dataset.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

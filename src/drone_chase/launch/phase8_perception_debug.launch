@@ -1,0 +1,54 @@
+<launch>
+  <param name="/use_sim_time" value="true"/>
+
+  <arg name="debug" default="false"/>
+  <arg name="max_depth" default="10.0"/>
+  <arg name="safe_depth" default="0.8"/>
+  <arg name="danger_depth" default="0.5"/>
+
+  <arg name="enable_extended_debug" default="true"/>
+  <arg name="num_depth_sectors" default="5"/>
+  <arg name="temporal_smoothing_alpha" default="0.3"/>
+  <arg name="publish_extended_debug" default="true"/>
+  <arg name="use_smoothed_for_danger" default="false"/>
+
+  <arg name="enable_detection_quality_debug" default="true"/>
+  <arg name="publish_detection_quality" default="true"/>
+  <arg name="target_lost_window" default="20"/>
+
+  <node pkg="drone_chase" type="red_ball_detector.py"
+        name="red_ball_detector" output="screen">
+    <param name="min_area" value="30"/>
+    <param name="min_circularity" value="0.4"/>
+    <param name="min_radius_px" value="2.5"/>
+    <param name="min_valid_depth_ratio" value="0.2"/>
+    <param name="min_depth" value="0.2"/>
+    <param name="max_depth" value="$(arg max_depth)"/>
+    <param name="debug" value="$(arg debug)"/>
+
+    <param name="enable_detection_quality_debug" value="$(arg enable_detection_quality_debug)"/>
+    <param name="publish_detection_quality" value="$(arg publish_detection_quality)"/>
+    <param name="target_lost_window" value="$(arg target_lost_window)"/>
+  </node>
+
+  <node pkg="drone_chase" type="depth_risk_estimator.py"
+        name="depth_risk_estimator" output="screen">
+    <param name="roi_y_min_ratio" value="0.15"/>
+    <param name="roi_y_max_ratio" value="0.70"/>
+    <param name="min_depth" value="0.2"/>
+    <param name="max_depth" value="$(arg max_depth)"/>
+    <param name="safe_depth" value="$(arg safe_depth)"/>
+    <param name="danger_depth" value="$(arg danger_depth)"/>
+    <param name="danger_area_ratio" value="0.2"/>
+    <param name="min_valid_ratio" value="0.02"/>
+    <param name="use_altitude_gate" value="true"/>
+    <param name="min_active_height" value="0.6"/>
+    <param name="debug" value="$(arg debug)"/>
+
+    <param name="enable_extended_debug" value="$(arg enable_extended_debug)"/>
+    <param name="num_depth_sectors" value="$(arg num_depth_sectors)"/>
+    <param name="temporal_smoothing_alpha" value="$(arg temporal_smoothing_alpha)"/>
+    <param name="publish_extended_debug" value="$(arg publish_extended_debug)"/>
+    <param name="use_smoothed_for_danger" value="$(arg use_smoothed_for_danger)"/>
+  </node>
+</launch>
