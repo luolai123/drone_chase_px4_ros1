@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
+import json
+
 import cv2
 import numpy as np
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Image
+from std_msgs.msg import String
 
 from drone_chase.msg import DepthRisk
 
@@ -25,11 +28,19 @@ class DepthRiskEstimator:
         self.use_altitude_gate = rospy.get_param("~use_altitude_gate", True)
         self.min_active_height = rospy.get_param("~min_active_height", 0.6)
         self.debug = rospy.get_param("~debug", True)
+        self.enable_extended_debug = rospy.get_param("~enable_extended_debug", False)
+        self.num_depth_sectors = max(1, int(rospy.get_param("~num_depth_sectors", 5)))
+        self.temporal_smoothing_alpha = float(rospy.get_param("~temporal_smoothing_alpha", 0.3))
+        self.temporal_smoothing_alpha = float(np.clip(self.temporal_smoothing_alpha, 0.0, 1.0))
+        self.publish_extended_debug = rospy.get_param("~publish_extended_debug", True)
+        self.use_smoothed_for_danger = rospy.get_param("~use_smoothed_for_danger", False)
 
         self.bridge = CvBridge()
         self.latest_drone_z = None
+        self.smoothed_front_q05 = None
         self.risk_pub = rospy.Publisher("/obstacle/risk", DepthRisk, queue_size=10)
         self.debug_pub = rospy.Publisher("/debug/depth_risk_image", Image, queue_size=2)
+        self.extended_debug_pub = rospy.Publisher("/debug/depth_risk_extended", String, queue_size=10)
         rospy.Subscriber("/uav/camera/depth/image_raw", Image, self.depth_callback, queue_size=2)
         rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.pose_callback, queue_size=1)
         rospy.loginfo("depth_risk_estimator ready")
@@ -73,6 +84,55 @@ class DepthRiskEstimator:
         close_count = int(np.count_nonzero(front[valid_mask] < self.safe_depth))
         return float(close_count) / float(valid_count)
 
+    def valid_ratio(self, region):
+        if region.size == 0:
+            return 0.0
+        return float(np.count_nonzero(self.valid_depth_mask(region))) / float(region.size)
+
+    def sector_names(self, count):
+        if int(count) == 5:
+            return ["far_left", "left", "front", "right", "far_right"]
+        return ["sector_{}".format(i) for i in range(int(count))]
+
+    def sector_stats(self, region):
+        valid_mask = self.valid_depth_mask(region)
+        valid_count = int(np.count_nonzero(valid_mask))
+        total_count = int(region.size)
+        valid_ratio = float(valid_count) / float(total_count) if total_count else 0.0
+        if valid_count == 0 or valid_ratio < self.min_valid_ratio:
+            return {
+                "q05": float(self.max_depth),
+                "q10": float(self.max_depth),
+                "median": float(self.max_depth),
+                "valid_ratio": valid_ratio,
+                "near_area_ratio": 0.0,
+            }
+        valid = region[valid_mask]
+        near_area_ratio = float(np.count_nonzero(valid < self.safe_depth)) / float(valid_count)
+        return {
+            "q05": float(np.percentile(valid, 5)),
+            "q10": float(np.percentile(valid, 10)),
+            "median": float(np.median(valid)),
+            "valid_ratio": valid_ratio,
+            "near_area_ratio": near_area_ratio,
+        }
+
+    def depth_sector_stats(self, depth_roi):
+        sectors = np.array_split(depth_roi, self.num_depth_sectors, axis=1)
+        return {
+            name: self.sector_stats(region)
+            for name, region in zip(self.sector_names(len(sectors)), sectors)
+        }
+
+    def update_smoothed_front_q05(self, current_front_q05):
+        current_front_q05 = float(current_front_q05)
+        if self.smoothed_front_q05 is None:
+            self.smoothed_front_q05 = current_front_q05
+        else:
+            alpha = self.temporal_smoothing_alpha
+            self.smoothed_front_q05 = alpha * current_front_q05 + (1.0 - alpha) * self.smoothed_front_q05
+        return float(self.smoothed_front_q05)
+
     def altitude_gate_active(self):
         return (
             self.use_altitude_gate
@@ -106,6 +166,23 @@ class DepthRiskEstimator:
         cv2.putText(image, "altitude_gate={}".format(altitude_gate), (8, image.shape[0] - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 255), 2)
         return image
 
+    def publish_extended_debug_msg(self, depth_msg, depth_roi, risk, smoothed_front_q05, sectors):
+        if not (self.enable_extended_debug and self.publish_extended_debug):
+            return
+        if rospy.is_shutdown():
+            return
+        payload = {
+            "stamp": float(depth_msg.header.stamp.to_sec()) if depth_msg.header.stamp else float(rospy.Time.now().to_sec()),
+            "roi_valid_ratio": self.valid_ratio(depth_roi),
+            "front_q05_raw": float(risk.front_q05_depth),
+            "front_q05_smoothed": float(smoothed_front_q05),
+            "sectors": sectors,
+        }
+        try:
+            self.extended_debug_pub.publish(String(data=json.dumps(payload, sort_keys=True)))
+        except rospy.ROSException:
+            pass
+
     def depth_callback(self, depth_msg):
         try:
             depth = self.depth_to_meters(depth_msg)
@@ -130,14 +207,26 @@ class DepthRiskEstimator:
         risk.right_q05_depth = self.q05_or_max(right)
         risk.front_min_depth = self.min_or_max(front)
         risk.obstacle_area_ratio = self.front_obstacle_ratio(front)
+        smoothed_front_q05 = self.update_smoothed_front_q05(risk.front_q05_depth)
+        danger_depth_value = smoothed_front_q05 if self.use_smoothed_for_danger else risk.front_q05_depth
         danger_from_depth = bool(
-            risk.front_q05_depth < self.danger_depth
+            danger_depth_value < self.danger_depth
             or risk.obstacle_area_ratio > self.danger_area_ratio
         )
         risk.danger = False if altitude_gate else danger_from_depth
-        self.risk_pub.publish(risk)
+        if not rospy.is_shutdown():
+            try:
+                self.risk_pub.publish(risk)
+            except rospy.ROSException:
+                pass
+
+        if self.enable_extended_debug:
+            sectors = self.depth_sector_stats(depth_roi)
+            self.publish_extended_debug_msg(depth_msg, depth_roi, risk, smoothed_front_q05, sectors)
 
         if self.debug:
+            if rospy.is_shutdown():
+                return
             try:
                 debug_msg = self.bridge.cv2_to_imgmsg(
                     self.make_debug_image(depth, risk, x1, x2, y0, y1, altitude_gate),
@@ -147,6 +236,8 @@ class DepthRiskEstimator:
                 self.debug_pub.publish(debug_msg)
             except CvBridgeError as exc:
                 rospy.logwarn_throttle(2.0, "Failed to publish depth debug image: %s", exc)
+            except rospy.ROSException:
+                pass
 
 
 if __name__ == "__main__":

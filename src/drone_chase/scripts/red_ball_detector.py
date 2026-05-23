@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import json
 import math
+from collections import deque
 
 import cv2
 import message_filters
@@ -9,6 +11,7 @@ import rospy
 from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import Point, PoseStamped
 from sensor_msgs.msg import CameraInfo, Image
+from std_msgs.msg import String
 
 from drone_chase.msg import TargetState
 
@@ -23,6 +26,9 @@ class RedBallDetector:
         self.min_depth = rospy.get_param("~min_depth", 0.2)
         self.max_depth = rospy.get_param("~max_depth", 10.0)
         self.debug = rospy.get_param("~debug", True)
+        self.enable_detection_quality_debug = rospy.get_param("~enable_detection_quality_debug", False)
+        self.publish_detection_quality = rospy.get_param("~publish_detection_quality", True)
+        self.target_lost_window = max(1, int(rospy.get_param("~target_lost_window", 20)))
         self.min_valid_depth_ratio = rospy.get_param(
             "~min_valid_depth_ratio",
             rospy.get_param("~min_depth_valid_ratio", 0.2),
@@ -32,10 +38,16 @@ class RedBallDetector:
 
         self.bridge = CvBridge()
         self.latest_pose = None
+        self.visible_history = deque(maxlen=self.target_lost_window)
+        self.lost_frames = 0
+        self.visible_frames = 0
+        self.radius_px_smooth = 0.0
+        self.radius_smoothing_alpha = 0.3
 
         self.state_pub = rospy.Publisher("/target/state", TargetState, queue_size=10)
         self.mask_pub = rospy.Publisher("/debug/red_ball_mask", Image, queue_size=2)
         self.overlay_pub = rospy.Publisher("/debug/red_ball_overlay", Image, queue_size=2)
+        self.quality_pub = rospy.Publisher("/debug/target_detection_quality", String, queue_size=10)
 
         rgb_sub = message_filters.Subscriber("/uav/camera/rgb/image_raw", Image)
         depth_sub = message_filters.Subscriber("/uav/camera/depth/image_raw", Image)
@@ -125,6 +137,58 @@ class RedBallDetector:
             return None, valid_ratio
         return float(np.median(valid)), valid_ratio
 
+    def update_detection_quality_state(self, visible, radius_px):
+        self.visible_history.append(bool(visible))
+        if visible:
+            self.visible_frames += 1
+            self.lost_frames = 0
+        else:
+            self.lost_frames += 1
+            self.visible_frames = 0
+
+        radius_px = float(radius_px)
+        if visible:
+            if self.radius_px_smooth <= 0.0:
+                self.radius_px_smooth = radius_px
+            else:
+                alpha = self.radius_smoothing_alpha
+                self.radius_px_smooth = alpha * radius_px + (1.0 - alpha) * self.radius_px_smooth
+        return float(sum(1 for item in self.visible_history if item)) / float(len(self.visible_history))
+
+    def classify_detection_quality(self, state, target, depth_valid_ratio, visible_ratio_window):
+        if not state.visible:
+            return "unstable" if visible_ratio_window > 0.0 and self.lost_frames < self.target_lost_window else "lost"
+        if depth_valid_ratio < max(0.5, float(self.min_valid_depth_ratio)):
+            return "weak_depth"
+        if state.radius_px < max(float(self.min_radius_px) * 1.5, 4.0):
+            return "small_target"
+        if visible_ratio_window < 0.8 or self.lost_frames > 0:
+            return "unstable"
+        return "good"
+
+    def publish_detection_quality_msg(self, state, target, depth_valid_ratio):
+        if not (self.enable_detection_quality_debug and self.publish_detection_quality):
+            return
+        if rospy.is_shutdown():
+            return
+        visible_ratio_window = self.update_detection_quality_state(state.visible, state.radius_px)
+        quality = self.classify_detection_quality(state, target, depth_valid_ratio, visible_ratio_window)
+        payload = {
+            "visible": bool(state.visible),
+            "visible_ratio_window": float(visible_ratio_window),
+            "lost_frames": int(self.lost_frames),
+            "visible_frames": int(self.visible_frames),
+            "depth_valid_ratio": float(depth_valid_ratio),
+            "radius_px": float(state.radius_px),
+            "radius_px_smooth": float(self.radius_px_smooth),
+            "confidence": float(state.confidence),
+            "quality": quality,
+        }
+        try:
+            self.quality_pub.publish(String(data=json.dumps(payload, sort_keys=True)))
+        except rospy.ROSException:
+            pass
+
     def camera_to_world_approx(self, position_camera):
         world = Point()
         if self.latest_pose is None:
@@ -140,6 +204,8 @@ class RedBallDetector:
 
     def publish_debug(self, header, bgr, mask, target, state):
         if not self.debug:
+            return
+        if rospy.is_shutdown():
             return
 
         overlay = bgr.copy()
@@ -168,6 +234,8 @@ class RedBallDetector:
             self.overlay_pub.publish(overlay_msg)
         except CvBridgeError as exc:
             rospy.logwarn_throttle(2.0, "Failed to publish red-ball debug images: %s", exc)
+        except rospy.ROSException:
+            pass
 
     def image_callback(self, rgb_msg, depth_msg, info_msg):
         try:
@@ -180,11 +248,13 @@ class RedBallDetector:
         header = rgb_msg.header
         state = self.make_empty_state(header)
         mask, target = self.find_red_ball(bgr)
+        depth_valid_ratio = 0.0
 
         if target is not None:
             depth, valid_ratio = self.estimate_target_depth(
                 depth_m, target["contour"], target["center"], target["radius"]
             )
+            depth_valid_ratio = float(valid_ratio)
             fx, fy = info_msg.K[0], info_msg.K[4]
             cx0, cy0 = info_msg.K[2], info_msg.K[5]
             if depth is not None and fx > 0.0 and fy > 0.0:
@@ -210,7 +280,12 @@ class RedBallDetector:
             else:
                 rospy.logwarn_throttle(2.0, "Red contour found but depth/CameraInfo is not usable")
 
-        self.state_pub.publish(state)
+        if not rospy.is_shutdown():
+            try:
+                self.state_pub.publish(state)
+            except rospy.ROSException:
+                pass
+        self.publish_detection_quality_msg(state, target, depth_valid_ratio)
         self.publish_debug(header, bgr, mask, target, state)
 
 
