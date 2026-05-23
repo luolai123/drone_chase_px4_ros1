@@ -50,3 +50,26 @@ outputs/phase7/*/failure_cases.csv
 !outputs/final_demo_commands.md
 !outputs/final_claims_and_limits.md
 !outputs/final_paper_style_abstract.md
+
+# Runtime outputs and simulation artifacts
+outputs/phase4/
+outputs/phase6/
+outputs/phase7/
+outputs/phase8/
+outputs/ros_logs/
+sitl_iris_1/
+etc/
+etc
+
+# Keep final reports and registry tracked
+!outputs/final_policy_registry/
+!outputs/final_policy_registry/*.md
+!outputs/final_policy_registry/*.json
+!outputs/final_policy_registry/*.csv
+!outputs/final_project_report.md
+!outputs/final_results_summary.md
+!outputs/final_demo_commands.md
+!outputs/final_claims_and_limits.md
+!outputs/final_paper_style_abstract.md
+!outputs/method_section_for_paper.md
+!outputs/architecture_diagram_description.md
